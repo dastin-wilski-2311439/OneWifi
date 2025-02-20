@@ -118,6 +118,8 @@ typedef enum {
     webconfig_subdoc_type_csi,
     webconfig_subdoc_type_stats_config,
     webconfig_subdoc_type_em_config,
+    webconfig_subdoc_type_em_sta_link,
+    webconfig_subdoc_type_em_sta_stats,
     webconfig_subdoc_type_steering_config,
     webconfig_subdoc_type_steering_clients,
     webconfig_subdoc_type_vif_neighbors,

@@ -1125,7 +1125,7 @@ typedef struct {
 
 typedef struct {
     int radio_count;
-    radio_metrics_policy_t *radio_metrics_policy;
+    radio_metrics_policy_t radio_metrics_policy[MAX_NUM_RADIOS];
 } radio_metrics_policies_t;
 
 typedef struct {
