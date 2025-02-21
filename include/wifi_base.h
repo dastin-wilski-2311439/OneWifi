@@ -1138,6 +1138,30 @@ typedef struct {
 } em_config_t;
 
 typedef struct {
+    mac_addr_t bssid;
+    int time_delta;
+    int est_mac_rate_down;
+    int est_mac_rate_up;
+    int RCPI;
+}em_sta_link_metrics_t;
+    
+typedef struct {
+    mac_addr_t sta_mac;
+    int num_bssid;
+    em_sta_link_metrics_t em_sta_link_metrics[];
+} em_sta_link_t;
+
+typedef struct {
+    int bytes_sent;
+    int bytes_received;
+    int packet_sent;
+    int packet_recieved;
+    int tx_packet_errors;
+    int rx_packet_errors;
+    int retransmission_count;
+} em_sta_stats_t;
+
+typedef struct {
     unsigned char dialog_token;
     size_t size;
     wifi_BeaconReport_t *beacon_repo;

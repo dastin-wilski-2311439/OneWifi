@@ -214,6 +214,8 @@ typedef struct {
     sta_beacon_report_reponse_t stamgr;
     collect_subscribed_stats_t collect_stats;
     em_config_t em_config;
+    em_sta_stats_t *sta_stats;
+    em_sta_link_t * sta_link;
 } webconfig_subdoc_decoded_data_t;
 
 typedef char  * webconfig_subdoc_encoded_raw_t;
