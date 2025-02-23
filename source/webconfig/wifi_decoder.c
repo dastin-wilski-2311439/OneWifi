@@ -5346,3 +5346,86 @@ webconfig_error_t decode_em_policy_object(const cJSON *em_cfg, em_config_t *em_c
     return webconfig_error_none;
 }
 
+decode_em_sta_link_object(const cJSON *em_sta_link, em_sta_link_t *sta_link)
+{
+    const cJSON  *param, *array, *array_item;
+    const cJSON *sta_link_obj;
+
+    sta_link_obj = cJSON_GetObjectItem(em_sta_link, "sta link");
+    if (sta_link_obj == NULL) {
+        wifi_util_error_print(WIFI_WEBCONFIG,"%s:%d: cjson object is NULL\n", __func__, __LINE__);
+        return webconfig_error_decode;
+    }
+
+    decode_param_allow_optional_string(sta_link_obj, "MAC", param);
+    strncpy((char *)sta_link->sta_mac, param->string, sizeof(mac_addr_t));
+
+    decode_param_integer(sta_link_obj, "Num BSSID", param);
+    sta_link->num_bssid = param->valuedouble;
+
+    array = cJSON_GetObjectItem(sta_link_obj, "STA Link Metrics");
+    if (array == NULL) {
+        wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: NULL Json pointer\n", __func__, __LINE__);
+    }
+
+    if (cJSON_IsArray(array) == false) {
+        wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: STA Link Metrics object not present\n", __func__, __LINE__);
+        return webconfig_error_decode;
+    }
+
+    for (int i = 0; i < sta_link->num_bssid; i++)
+    {
+        array_item = cJSON_GetArrayItem(array, i);
+
+        decode_param_allow_optional_string(array_item, "MAC", param);
+        strncpy((char *)sta_link->em_sta_link_metrics[i].bssid, param->string, sizeof(mac_addr_t));
+
+        decode_param_integer(array_item, "Estimated Mac Rate Down", param);
+        sta_link->em_sta_link_metrics[i].est_mac_rate_down = param->valuedouble;
+
+        decode_param_integer(array_item, "Estimated Mac Rate Up", param);
+        sta_link->em_sta_link_metrics[i].est_mac_rate_up = param->valuedouble;
+
+        decode_param_integer(array_item, "RCPI", param);
+        sta_link->em_sta_link_metrics[i].RCPI = param->valuedouble;
+    }
+
+    return webconfig_error_none;
+}
+
+decode_em_sta_stats_object(const cJSON *em_sta_stats, em_sta_stats_t *sta_stats)
+{
+    const cJSON  *param;
+    const cJSON *sta_stats_obj;
+
+    sta_stats_obj = cJSON_GetObjectItem(em_sta_stats, "sta stats");
+    if (sta_stats_obj == NULL) {
+        wifi_util_error_print(WIFI_WEBCONFIG,"%s:%d: cjson object is NULL\n", __func__, __LINE__);
+        return webconfig_error_decode;
+    }
+
+    decode_param_integer(sta_stats_obj, "Bytes Sent", param);
+    sta_stats->bytes_sent = param->valuedouble;
+
+    decode_param_integer(sta_stats_obj, "Bytes Received", param);
+    sta_stats->bytes_received= param->valuedouble;
+
+    decode_param_integer(sta_stats_obj, "Packets Sent", param);
+    sta_stats->packet_sent param->valuedouble;
+
+    decode_param_integer(sta_stats_obj, "Packets Received", param);
+    sta_stats->packet_recieved param->valuedouble;
+
+    decode_param_integer(sta_stats_obj, "TX Packet Errors", param);
+    sta_stats->tx_packet_errors param->valuedouble;
+
+    decode_param_integer(sta_stats_obj, "RX Packet Errors", param);
+    sta_stats->rx_packet_errors param->valuedouble;
+
+    decode_param_integer(sta_stats_obj, "Retransmission Count", param);
+    sta_stats->retransmission_countparam->valuedouble;
+
+
+    return webconfig_error_none;
+}
+

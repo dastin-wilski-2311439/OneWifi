@@ -87,7 +87,7 @@ int em_route(wifi_event_route_t *route)
     return RETURN_OK;
 }
 
-static int em_sta_stats_publish(wifi_app_t *app)
+static int em_sta_stats_publish(wifi_app_t *app, sta_data_t *sta_data)
 {
     webconfig_subdoc_data_t *data;
     raw_data_t rdata;
@@ -102,13 +102,14 @@ static int em_sta_stats_publish(wifi_app_t *app)
         return -1;
     }
 
+    //need to specify how to pack all the metrics, send one by one or into array?
     memset(data, 0, sizeof(webconfig_subdoc_data_t));
     memset(&rdata, 0, sizeof(raw_data_t));
 
-    if (webconfig_encode(&ctrl->webconfig, data, webconfig_subdoc_type_assocdev_stats) != webconfig_error_none) {
+    if (webconfig_encode(&ctrl->webconfig, data, webconfig_subdoc_type_em_sta_stats) != webconfig_error_none) {
         wifi_util_error_print(WIFI_CTRL, "%s:%d Error in encoding assocdev stats\n", __func__,
             __LINE__);
-        free(data->u.decoded.external_protos);
+        free(data->u.decoded.sta_stats);
         free(data);
         return RETURN_ERR;
     }
@@ -165,11 +166,11 @@ static int handle_ready_client_stats(wifi_app_t *app, client_assoc_data_t *stats
                     if (RCPI < RCPI_threshold)
                     {
                         stats[tmp_vap_array_index].threshold_hit[i] = true;
-                        em_sta_stats_publish(app);
+                        em_sta_stats_publish(app, sta_data);
                     }
                     else if (stats[tmp_vap_array_index].threshold_hit[i] == true && RCPI < (RCPI_threshold + RCPI_hysteresis))
                     {
-                        em_sta_stats_publish(app);
+                        em_sta_stats_publish(app, sta_data);
                     }
                     else
                     {

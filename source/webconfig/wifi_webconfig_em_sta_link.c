@@ -23,6 +23,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include "collection.h"
+#include "wifi_webconfig.h"
 #include "wifi_monitor.h"
 #include "wifi_util.h"
 #include "wifi_ctrl.h"
@@ -48,11 +49,39 @@ webconfig_error_t access_check_em_sta_link_subdoc(webconfig_t *config, webconfig
 
 webconfig_error_t translate_from_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
 {
+    if (((data->descriptor & webconfig_data_descriptor_translate_to_ovsdb) == webconfig_data_descriptor_translate_to_ovsdb) ||  ((data->descriptor & webconfig_data_descriptor_translate_to_easymesh) == webconfig_data_descriptor_translate_to_easymesh)) {
+        if (config->proto_desc.translate_to(webconfig_subdoc_type_em_sta_link, data) != webconfig_error_none) {
+            if ((data->descriptor & webconfig_data_descriptor_translate_to_ovsdb) == webconfig_data_descriptor_translate_to_ovsdb) {
+                return webconfig_error_translate_to_ovsdb;
+            } else {
+                return webconfig_error_translate_to_easymesh;
+            }
+        }
+    } else if ((data->descriptor & webconfig_data_descriptor_translate_to_tr181) == webconfig_data_descriptor_translate_to_tr181) {
+
+    } else {
+        // no translation required
+    }
+    //no translation required
     return webconfig_error_none;
 }
 
 webconfig_error_t translate_to_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
 {
+    if (((data->descriptor & webconfig_data_descriptor_translate_to_ovsdb) == webconfig_data_descriptor_translate_to_ovsdb) ||  ((data->descriptor & webconfig_data_descriptor_translate_to_easymesh) == webconfig_data_descriptor_translate_to_easymesh)) {
+        if (config->proto_desc.translate_from(webconfig_subdoc_type_em_sta_link, data) != webconfig_error_none) {
+            if ((data->descriptor & webconfig_data_descriptor_translate_to_ovsdb) == webconfig_data_descriptor_translate_to_ovsdb) {
+                return webconfig_error_translate_to_ovsdb;
+            } else {
+                return webconfig_error_translate_to_easymesh;
+            }
+        }
+    } else if ((data->descriptor & webconfig_data_descriptor_translate_to_tr181) == webconfig_data_descriptor_translate_to_tr181) {
+
+    } else {
+        // no translation required
+    }
+    //no translation required
     return webconfig_error_none;
 }
 
@@ -126,10 +155,10 @@ webconfig_error_t decode_em_sta_link_subdoc(webconfig_t *config, webconfig_subdo
         return webconfig_error_decode;
     }
 
-    memset(&params->em_config, 0, sizeof(em_config_t));
+    memset(params->sta_link, 0, sizeof(em_config_t));
 
-    em_config = cJSON_GetObjectItem(json, "WifiEMConfig");
-    if (em_config == NULL) {
+    em_sta_link = cJSON_GetObjectItem(json, "WifiEMConfig");
+    if (em_sta_link == NULL) {
         wifi_util_error_print(WIFI_EM, "%s:%d: EMConfig object not present\n", __func__, __LINE__);
         cJSON_Delete(json);
         wifi_util_error_print(WIFI_EM, "%s\n", (char *)data->u.encoded.raw);
