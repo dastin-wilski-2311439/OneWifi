@@ -5346,7 +5346,7 @@ webconfig_error_t decode_em_policy_object(const cJSON *em_cfg, em_config_t *em_c
     return webconfig_error_none;
 }
 
-decode_em_sta_link_object(const cJSON *em_sta_link, em_sta_link_t *sta_link)
+decode_em_sta_link_metrics_object(const cJSON *em_sta_link, em_assoc_sta_link_metrics_rsp_t *sta_link_metrics)
 {
     const cJSON  *param, *array, *array_item;
     const cJSON *sta_link_obj;
@@ -5393,39 +5393,4 @@ decode_em_sta_link_object(const cJSON *em_sta_link, em_sta_link_t *sta_link)
     return webconfig_error_none;
 }
 
-decode_em_sta_stats_object(const cJSON *em_sta_stats, em_sta_stats_t *sta_stats)
-{
-    const cJSON  *param;
-    const cJSON *sta_stats_obj;
-
-    sta_stats_obj = cJSON_GetObjectItem(em_sta_stats, "sta stats");
-    if (sta_stats_obj == NULL) {
-        wifi_util_error_print(WIFI_WEBCONFIG,"%s:%d: cjson object is NULL\n", __func__, __LINE__);
-        return webconfig_error_decode;
-    }
-
-    decode_param_integer(sta_stats_obj, "Bytes Sent", param);
-    sta_stats->bytes_sent = param->valuedouble;
-
-    decode_param_integer(sta_stats_obj, "Bytes Received", param);
-    sta_stats->bytes_received= param->valuedouble;
-
-    decode_param_integer(sta_stats_obj, "Packets Sent", param);
-    sta_stats->packet_sent param->valuedouble;
-
-    decode_param_integer(sta_stats_obj, "Packets Received", param);
-    sta_stats->packet_recieved param->valuedouble;
-
-    decode_param_integer(sta_stats_obj, "TX Packet Errors", param);
-    sta_stats->tx_packet_errors param->valuedouble;
-
-    decode_param_integer(sta_stats_obj, "RX Packet Errors", param);
-    sta_stats->rx_packet_errors param->valuedouble;
-
-    decode_param_integer(sta_stats_obj, "Retransmission Count", param);
-    sta_stats->retransmission_countparam->valuedouble;
-
-
-    return webconfig_error_none;
-}
 

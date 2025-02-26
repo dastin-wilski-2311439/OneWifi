@@ -118,8 +118,7 @@ typedef enum {
     webconfig_subdoc_type_csi,
     webconfig_subdoc_type_stats_config,
     webconfig_subdoc_type_em_config,
-    webconfig_subdoc_type_em_sta_link,
-    webconfig_subdoc_type_em_sta_stats,
+    webconfig_subdoc_type_em_sta_link_metrics,
     webconfig_subdoc_type_steering_config,
     webconfig_subdoc_type_steering_clients,
     webconfig_subdoc_type_vif_neighbors,
@@ -198,6 +197,12 @@ typedef struct {
 } collect_subscribed_stats_t;
 
 typedef struct {
+    int sta_count;
+    em_sta_stats_t *sta_stats;
+    em_sta_link_t * sta_link;
+} em_sta_data_t;
+
+typedef struct {
     wifi_global_config_t    config;
     wifi_hal_capability_t   hal_cap;
     rdk_wifi_radio_t    radios[MAX_NUM_RADIOS];
@@ -216,8 +221,7 @@ typedef struct {
     sta_beacon_report_reponse_t stamgr;
     collect_subscribed_stats_t collect_stats;
     em_config_t em_config;
-    em_sta_stats_t *sta_stats;
-    em_sta_link_t * sta_link;
+    em_assoc_sta_link_metrics_rsp_t em_sta_link_metrics_rsp;
 } webconfig_subdoc_decoded_data_t;
 
 typedef char  * webconfig_subdoc_encoded_raw_t;

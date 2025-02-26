@@ -1142,25 +1142,39 @@ typedef struct {
     int time_delta;
     int est_mac_rate_down;
     int est_mac_rate_up;
-    int RCPI;
-}em_sta_link_metrics_t;
-    
+    int rcpi;
+} em_assoc_sta_link_metrics_t;
+
+typedef struct {
+    int reason_code;
+    mac_addr_t sta_mac;
+} em_error_code_t;
+
+typedef struct {
+    mac_addr_t bssid;
+    int last_data_downlink_rate;
+    int last_data_uplink_rate;
+    int utilization_receive;
+    int utilization_transmit;
+} em_assoc_sta_ext_link_metrics_data_t;
+
 typedef struct {
     mac_addr_t sta_mac;
     int num_bssid;
-    em_sta_link_metrics_t em_sta_link_metrics[];
-} em_sta_link_t;
+    em_assoc_sta_ext_link_metrics_data_t *assoc_sta_ext_link_metrics_data;
+} em_assoc_sta_ext_link_metrics_t;
 
 typedef struct {
-    int bytes_sent;
-    int bytes_received;
-    int packet_sent;
-    int packet_recieved;
-    int tx_packet_errors;
-    int rx_packet_errors;
-    int retransmission_count;
-} em_sta_stats_t;
+    em_assoc_sta_link_metrics_t *assoc_sta_link_metrics;
+    em_error_code_t *error_code;
+    em_assoc_sta_ext_link_metrics_t *assoc_sta_ext_link_metrics;
+} em_per_sta_metrics_t;
 
+typedef struct {
+    int sta_count;
+    em_per_sta_metrics_t *per_sta_metrics;
+}em_assoc_sta_link_metrics_rsp_t;
+    
 typedef struct {
     unsigned char dialog_token;
     size_t size;

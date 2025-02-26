@@ -28,29 +28,29 @@
 #include "wifi_util.h"
 #include "wifi_ctrl.h"
 
-webconfig_subdoc_object_t   em_sta_stats_objects[3] = {
+webconfig_subdoc_object_t   em_sta_link_metrics_objects[3] = {
     { webconfig_subdoc_object_type_version, "Version" },
     { webconfig_subdoc_object_type_subdoc, "SubDocName" },
-    { webconfig_subdoc_object_type_em_sta_stats, "WifiStaStats" },
+    { webconfig_subdoc_object_type_em_sta_link, "WifiStaLinkMetrics" },
 };
 
-webconfig_error_t init_em_sta_stats_subdoc(webconfig_subdoc_t *doc)
+webconfig_error_t init_em_sta_link_subdoc(webconfig_subdoc_t *doc)
 {
-    doc->num_objects = sizeof(em_sta_stats_objects)/sizeof(webconfig_subdoc_object_t);
-    memcpy((unsigned char *)doc->objects, (unsigned char *)&em_sta_stats_objects, sizeof(em_sta_stats_objects));
+    doc->num_objects = sizeof(em_sta_link_metrics_objects)/sizeof(webconfig_subdoc_object_t);
+    memcpy((unsigned char *)doc->objects, (unsigned char *)&em_sta_link_metrics_objects, sizeof(em_sta_link_metrics_objects));
 
     return webconfig_error_none;
 }
 
-webconfig_error_t access_check_em_sta_stats_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
+webconfig_error_t access_check_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
 {
     return webconfig_error_none;
 }
 
-webconfig_error_t translate_from_em_sta_stats_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
+webconfig_error_t translate_from_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
 {
     if (((data->descriptor & webconfig_data_descriptor_translate_to_ovsdb) == webconfig_data_descriptor_translate_to_ovsdb) ||  ((data->descriptor & webconfig_data_descriptor_translate_to_easymesh) == webconfig_data_descriptor_translate_to_easymesh)) {
-        if (config->proto_desc.translate_to(webconfig_subdoc_type_em_sta_stats, data) != webconfig_error_none) {
+        if (config->proto_desc.translate_to(webconfig_subdoc_type_em_sta_link_metrics, data) != webconfig_error_none) {
             if ((data->descriptor & webconfig_data_descriptor_translate_to_ovsdb) == webconfig_data_descriptor_translate_to_ovsdb) {
                 return webconfig_error_translate_to_ovsdb;
             } else {
@@ -66,10 +66,10 @@ webconfig_error_t translate_from_em_sta_stats_subdoc(webconfig_t *config, webcon
     return webconfig_error_none;
 }
 
-webconfig_error_t translate_to_em_sta_stats_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
+webconfig_error_t translate_to_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
 {
     if (((data->descriptor & webconfig_data_descriptor_translate_to_ovsdb) == webconfig_data_descriptor_translate_to_ovsdb) ||  ((data->descriptor & webconfig_data_descriptor_translate_to_easymesh) == webconfig_data_descriptor_translate_to_easymesh)) {
-        if (config->proto_desc.translate_from(webconfig_subdoc_type_em_sta_stats, data) != webconfig_error_none) {
+        if (config->proto_desc.translate_from(webconfig_subdoc_type_em_sta_link_metrics, data) != webconfig_error_none) {
             if ((data->descriptor & webconfig_data_descriptor_translate_to_ovsdb) == webconfig_data_descriptor_translate_to_ovsdb) {
                 return webconfig_error_translate_to_ovsdb;
             } else {
@@ -85,9 +85,9 @@ webconfig_error_t translate_to_em_sta_stats_subdoc(webconfig_t *config, webconfi
     return webconfig_error_none;
 }
 
-webconfig_error_t encode_em_sta_stats_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
+webconfig_error_t encode_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
 {
-    cJSON *json, *obj_emstastats, *device_list, *device_obj, *sta_stats_obj;
+    cJSON *json, *obj_emstalink, *device_list, *device_obj, *sta_link_obj;
     char *str;
     webconfig_subdoc_decoded_data_t *params;
 
@@ -111,12 +111,12 @@ webconfig_error_t encode_em_sta_stats_subdoc(webconfig_t *config, webconfig_subd
     data->u.encoded.json = json;
 
     cJSON_AddStringToObject(json, "Version", "1.0");
-    cJSON_AddStringToObject(json, "SubDocName", "Easymesh STA stats");
+    cJSON_AddStringToObject(json, "SubDocName", "EM_STA_link_metrics");
 
-    obj_emstastats = cJSON_CreateObject();
-    cJSON_AddItemToObject(json, "WifiStaStats", obj_emstastats);
-
-    if (encode_em_sta_stats_object(&params->sta_stats, obj_emstastats) != webconfig_error_none) {
+    obj_emstalink = cJSON_CreateArray();
+    cJSON_AddItemToObject(json, "Associated STA Link Metrics Response", obj_emstalink);
+    
+    if (encode_em_sta_link_metrics_object(&params->em_sta_link_metrics_rsp, obj_emstalink) != webconfig_error_none) {
         wifi_util_error_print(WIFI_EM, "%s:%d: Failed to encode wifi easymesh config\n", __func__, __LINE__);
         return webconfig_error_encode;
     }
@@ -138,10 +138,10 @@ webconfig_error_t encode_em_sta_stats_subdoc(webconfig_t *config, webconfig_subd
     return webconfig_error_none;
 }
 
-webconfig_error_t decode_em_sta_stats_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
+webconfig_error_t decode_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
 {
     webconfig_subdoc_decoded_data_t *params;
-    cJSON *json, *em_sta_stats;
+    cJSON *json, *em_sta_link;
     
     params = &data->u.decoded;
     if (params == NULL) {
@@ -154,21 +154,21 @@ webconfig_error_t decode_em_sta_stats_subdoc(webconfig_t *config, webconfig_subd
         return webconfig_error_decode;
     }
 
-    memset(params->sta_stats, 0, sizeof(em_sta_stats_t));
+    memset(params->sta_link, 0, sizeof(em_config_t));
 
-    em_sta_stats = cJSON_GetObjectItem(json, "WifiStaStats");
-    if (em_sta_stats == NULL) {
+    em_sta_link = cJSON_GetObjectItem(json, "WifiEMConfig");
+    if (em_sta_link == NULL) {
         wifi_util_error_print(WIFI_EM, "%s:%d: EMConfig object not present\n", __func__, __LINE__);
         cJSON_Delete(json);
         wifi_util_error_print(WIFI_EM, "%s\n", (char *)data->u.encoded.raw);
         return webconfig_error_invalid_subdoc;
     }
 
-    if (cJSON_IsArray(em_sta_stats)) {
-        int arr_sz = cJSON_GetArraySize(em_sta_stats);
+    if (cJSON_IsArray(em_sta_link)) {
+        int arr_sz = cJSON_GetArraySize(em_sta_link);
             for (int i = 0; i < arr_sz; i++) {
-                const cJSON *stats = cJSON_GetArrayItem(em_sta_stats, i);
-                if (decode_em_sta_stats_object(stats, &params->em_config) != webconfig_error_none) {
+                const cJSON *policy_cfg = cJSON_GetArrayItem(em_sta_link, i);
+                if (decode_em_sta_link_object(policy_cfg, &params->em_config) != webconfig_error_none) {
                     wifi_util_error_print(WIFI_EM, "%s:%d: EM config object Validation Failed\n", __func__, __LINE__);
                     cJSON_Delete(json);
                     wifi_util_error_print(WIFI_EM, "%s\n", (char *)data->u.encoded.raw);
@@ -176,6 +176,8 @@ webconfig_error_t decode_em_sta_stats_subdoc(webconfig_t *config, webconfig_subd
                 }
             }
     }
+
+
 
     cJSON_Delete(json);
     wifi_util_info_print(WIFI_EM, "%s:%d: decode success\n", __func__, __LINE__);

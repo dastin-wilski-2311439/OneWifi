@@ -1932,6 +1932,36 @@ webconfig_error_t   translate_vap_object_from_easymesh_to_dml(webconfig_subdoc_d
     }
     return webconfig_error_none;
 }
+
+webconfig_error_t translate_sta_stats_to_easymesh_sta_info(webconfig_subdoc_data_t *data)
+{
+    em_sta_info_t em_sta_dev_info;
+    webconfig_external_easymesh_t *proto;
+    em_radio_info_t *radio_info;
+    em_bss_info_t *bss_info;
+    int vap_index = 0, radio_index = 0;
+    wifi_platform_property_t *wifi_prop;
+    webconfig_subdoc_decoded_data_t *params = &data->u.decoded;
+
+
+    if (params == NULL) {
+        wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: Input data is NULL\n", __func__, __LINE__);
+        return webconfig_error_invalid_subdoc;
+    }
+
+    return webconfig_error_none;
+}
+
+webconfig_error_t translate_sta_link_to_easymesh_sta_info(webconfig_subdoc_data_t *data)
+{
+    if (data == NULL) {
+        wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: Input data is NULL\n", __func__, __LINE__);
+        return webconfig_error_invalid_subdoc;
+    }
+
+    return webconfig_error_none;
+}
+
 // translate_to_easymesh_tables() is translations of OneWifi structures to Easymesh structures based on type
 webconfig_error_t  translate_to_easymesh_tables(webconfig_subdoc_type_t type, webconfig_subdoc_data_t *data)
 {
