@@ -1165,9 +1165,9 @@ typedef struct {
 } em_assoc_sta_ext_link_metrics_t;
 
 typedef struct {
-    em_assoc_sta_link_metrics_t *assoc_sta_link_metrics;
-    em_error_code_t *error_code;
-    em_assoc_sta_ext_link_metrics_t *assoc_sta_ext_link_metrics;
+    em_assoc_sta_link_metrics_t assoc_sta_link_metrics;
+    em_error_code_t error_code;
+    em_assoc_sta_ext_link_metrics_t assoc_sta_ext_link_metrics;
 } em_per_sta_metrics_t;
 
 typedef struct {

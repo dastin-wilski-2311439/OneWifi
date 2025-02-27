@@ -154,7 +154,7 @@ webconfig_error_t decode_em_sta_link_subdoc(webconfig_t *config, webconfig_subdo
         return webconfig_error_decode;
     }
 
-    memset(params->sta_link, 0, sizeof(em_config_t));
+    memset(params->em_sta_link_metrics_rsp.per_sta_metrics, 0, sizeof(em_per_sta_metrics_t));
 
     em_sta_link = cJSON_GetObjectItem(json, "WifiEMConfig");
     if (em_sta_link == NULL) {
@@ -176,8 +176,6 @@ webconfig_error_t decode_em_sta_link_subdoc(webconfig_t *config, webconfig_subdo
                 }
             }
     }
-
-
 
     cJSON_Delete(json);
     wifi_util_info_print(WIFI_EM, "%s:%d: decode success\n", __func__, __LINE__);

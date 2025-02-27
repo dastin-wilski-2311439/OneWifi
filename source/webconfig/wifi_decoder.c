@@ -5348,48 +5348,16 @@ webconfig_error_t decode_em_policy_object(const cJSON *em_cfg, em_config_t *em_c
 
 decode_em_sta_link_metrics_object(const cJSON *em_sta_link, em_assoc_sta_link_metrics_rsp_t *sta_link_metrics)
 {
-    const cJSON  *param, *array, *array_item;
-    const cJSON *sta_link_obj;
+    const cJSON *param;
+    const cJSON *rsp_obj, *sta_link_metrics_obj, *error_code_obj, *sta_ext_link_metrics_obj;
 
-    sta_link_obj = cJSON_GetObjectItem(em_sta_link, "sta link");
-    if (sta_link_obj == NULL) {
-        wifi_util_error_print(WIFI_WEBCONFIG,"%s:%d: cjson object is NULL\n", __func__, __LINE__);
+    rsp_obj = cJSON_GetObjectItem(em_sta_link, "Associated STA Link Metrics Response");
+    if (rsp_obj == NULL) {
+        wifi_util_error_print(WIFI_EM,"%s:%d: cjson object is NULL\n", __func__, __LINE__);
         return webconfig_error_decode;
     }
 
-    decode_param_allow_optional_string(sta_link_obj, "MAC", param);
-    strncpy((char *)sta_link->sta_mac, param->string, sizeof(mac_addr_t));
-
-    decode_param_integer(sta_link_obj, "Num BSSID", param);
-    sta_link->num_bssid = param->valuedouble;
-
-    array = cJSON_GetObjectItem(sta_link_obj, "STA Link Metrics");
-    if (array == NULL) {
-        wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: NULL Json pointer\n", __func__, __LINE__);
-    }
-
-    if (cJSON_IsArray(array) == false) {
-        wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d: STA Link Metrics object not present\n", __func__, __LINE__);
-        return webconfig_error_decode;
-    }
-
-    for (int i = 0; i < sta_link->num_bssid; i++)
-    {
-        array_item = cJSON_GetArrayItem(array, i);
-
-        decode_param_allow_optional_string(array_item, "MAC", param);
-        strncpy((char *)sta_link->em_sta_link_metrics[i].bssid, param->string, sizeof(mac_addr_t));
-
-        decode_param_integer(array_item, "Estimated Mac Rate Down", param);
-        sta_link->em_sta_link_metrics[i].est_mac_rate_down = param->valuedouble;
-
-        decode_param_integer(array_item, "Estimated Mac Rate Up", param);
-        sta_link->em_sta_link_metrics[i].est_mac_rate_up = param->valuedouble;
-
-        decode_param_integer(array_item, "RCPI", param);
-        sta_link->em_sta_link_metrics[i].RCPI = param->valuedouble;
-    }
-
+    
     return webconfig_error_none;
 }
 

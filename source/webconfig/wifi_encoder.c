@@ -2512,7 +2512,7 @@ webconfig_error_t encode_em_sta_link_metrics_object(const em_assoc_sta_link_metr
     }
 
     char mac_str[32];
-    cJSON *assoc_sta_link_metrics_obj, *error_code_obj, *assoc_sta_ext_link_metrics, *param_obj, *temp_obj, *param_arr;
+    cJSON *assoc_sta_link_metrics_obj, *error_code_obj, *assoc_sta_ext_link_metrics_obj, *param_obj, *temp_obj, *param_arr;
 
     for (int i = 0; i < sta_link_metrics->sta_count; i++)
     {
@@ -2522,20 +2522,23 @@ webconfig_error_t encode_em_sta_link_metrics_object(const em_assoc_sta_link_metr
         }
         cJSON_AddItemToArray(sta_link_metrics_obj, param_obj);
 
-        // Associated STA Link Metrics 
-        assoc_sta_link_metrics_obj = cJSON_CreateObject();
-        if (assoc_sta_link_metrics_obj == NULL) {
-            wifi_util_dbg_print(WIFI_EM, "%s:%d: json create object failed\n", __func__, __LINE__);
+        // Associated STA Link Metrics
+        if (sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics != NULL)
+        {
+            assoc_sta_link_metrics_obj = cJSON_CreateObject();
+            if (assoc_sta_link_metrics_obj == NULL) {
+                wifi_util_dbg_print(WIFI_EM, "%s:%d: json create object failed\n", __func__, __LINE__);
+            }
+            cJSON_AddItemToObject(param_obj, "Associated STA Link Metrics", assoc_sta_link_metrics_obj);
+    
+            uint8_mac_to_string_mac(sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.bssid, mac_str);
+            cJSON_AddStringToObject(assoc_sta_link_metrics_obj, "BSSID", mac_str);
+            cJSON_AddNumberToObject(assoc_sta_link_metrics_obj, "Time Delta", sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.time_delta);
+            cJSON_AddNumberToObject(assoc_sta_link_metrics_obj, "Estimated Mac Rate Down", sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.est_mac_rate_down);
+            cJSON_AddNumberToObject(assoc_sta_link_metrics_obj, "Estimated Mac Rate Up", sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.est_mac_rate_up);
+            cJSON_AddNumberToObject(assoc_sta_link_metrics_obj, "RCPI", sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.rcpi);
         }
-        cJSON_AddItemToObject(param_obj, "Associated STA Link Metrics", assoc_sta_link_metrics_obj);
 
-        uint8_mac_to_string_mac(sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics->bssid, mac_str);
-        cJSON_AddStringToObject(assoc_sta_link_metrics_obj, "BSSID", mac_str);
-        cJSON_AddNumberToObject(assoc_sta_link_metrics_obj, "Time Delta", sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics->time_delta);
-        cJSON_AddNumberToObject(assoc_sta_link_metrics_obj, "Estimated Mac Rate Down", sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics->est_mac_rate_down);
-        cJSON_AddNumberToObject(assoc_sta_link_metrics_obj, "Estimated Mac Rate Up", sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics->est_mac_rate_up);
-        cJSON_AddNumberToObject(assoc_sta_link_metrics_obj, "RCPI", sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics->rcpi);
-        
         // Error Code
         if (sta_link_metrics->per_sta_metrics[i].error_code != NULL)
         {
@@ -2545,37 +2548,46 @@ webconfig_error_t encode_em_sta_link_metrics_object(const em_assoc_sta_link_metr
             }
             cJSON_AddItemToObject(param_obj, "Error Code", error_code_obj);
     
-            cJSON_AddNumberToObject(error_code_obj, "Reason Code", sta_link_metrics->per_sta_metrics[i].error_code->reason_code);
-            uint8_mac_to_string_mac(sta_link_metrics->per_sta_metrics[i].error_code->sta_mac, mac_str);
+            cJSON_AddNumberToObject(error_code_obj, "Reason Code", sta_link_metrics->per_sta_metrics[i].error_code.reason_code);
+            uint8_mac_to_string_mac(sta_link_metrics->per_sta_metrics[i].error_code.sta_mac, mac_str);
             cJSON_AddStringToObject(error_code_obj, "STA MAC", mac_str);
         }
 
         // Associated STA Extended Link Metrics 
-        assoc_sta_ext_link_metrics = cJSON_CreateObject();
-        if (assoc_sta_ext_link_metrics == NULL) {
-            wifi_util_dbg_print(WIFI_EM, "%s:%d: json create object failed\n", __func__, __LINE__);
+        if (sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics != NULL)
+        {
+            assoc_sta_ext_link_metrics_obj = cJSON_CreateObject();
+            if (assoc_sta_ext_link_metrics_obj == NULL) {
+                wifi_util_dbg_print(WIFI_EM, "%s:%d: json create object failed\n", __func__, __LINE__);
+            }
+            cJSON_AddItemToObject(param_obj, "Associated STA Extended Link Metrics", assoc_sta_ext_link_metrics_obj);
+    
+            uint8_mac_to_string_mac(sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.sta_mac, mac_str);
+            cJSON_AddStringToObject(assoc_sta_ext_link_metrics_obj, "STA MAC", mac_str);
+            cJSON_AddNumberToObject(assoc_sta_ext_link_metrics_obj, "Number of BSSIDs", sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.num_bssid);
+    
+            param_arr = cJSON_CreateArray();
+            if (param_arr == NULL) {
+                wifi_util_dbg_print(WIFI_EM, "%s:%d: json create object failed\n", __func__, __LINE__);
+            }
+            cJSON_AddItemToObject(assoc_sta_ext_link_metrics_obj, "Per BSSID Metrics", param_arr);
+    
+            for (int j = 0; j < sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.num_bssid; j++)
+            {
+                temp_obj = cJSON_CreateObject();
+                if (temp_obj == NULL) {
+                    wifi_util_dbg_print(WIFI_EM, "%s:%d: json create object failed\n", __func__, __LINE__);
+                }
+                uint8_mac_to_string_mac(sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[j].bssid, mac_str);
+                cJSON_AddStringToObject(temp_obj, "BSSID", mac_str);
+                cJSON_AddNumberToObject(temp_obj, "Last Data Downlink Rate", sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[j].last_data_downlink_rate);
+                cJSON_AddNumberToObject(temp_obj, "Last Data Uplink Rate", sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[j].last_data_uplink_rate);
+                cJSON_AddNumberToObject(temp_obj, "Utilization Receive", sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[j].utilization_receive);
+                cJSON_AddNumberToObject(temp_obj, "Utilization Transmit", sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[j].utilization_transmit);
+                cJSON_AddItemToArray(param_arr, temp_obj);
+            }
         }
-        cJSON_AddItemToObject(param_obj, "Associated STA Extended Link Metrics", assoc_sta_ext_link_metrics);
-
-        uint8_mac_to_string_mac(sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics->sta_mac, mac_str);
-        cJSON_AddStringToObject(assoc_sta_ext_link_metrics, "STA MAC", mac_str);
-        cJSON_AddNumberToObject(assoc_sta_ext_link_metrics, "Number of BSSIDs", sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics->num_bssid);
-
-        param_arr = cJSON_CreateArray();
-        if (param_arr == NULL) {
-            wifi_util_dbg_print(WIFI_EM, "%s:%d: json create object failed\n", __func__, __LINE__);
-        }
-        cJSON_AddItemToObject(assoc_sta_ext_link_metrics, "Per BSSID Metrics", param_arr);
-
-        temp_obj = cJSON_CreateObject();
-        if (temp_obj == NULL) {
-            wifi_util_dbg_print(WIFI_EM, "%s:%d: json create object failed\n", __func__, __LINE__);
-        }
-        cJSON_AddItemToArray(param_arr, temp_obj);
-
     }
-
-
     return webconfig_error_none;
 }
 
