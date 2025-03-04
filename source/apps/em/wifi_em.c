@@ -13,6 +13,7 @@
 typedef struct {
     sta_data_t  assoc_stats[BSS_MAX_NUM_STATIONS];
     bool        threshold_hit[BSS_MAX_NUM_STATIONS];
+    int         hit_count;
     size_t      stat_array_size;
 } client_assoc_data_t;
 
@@ -87,7 +88,35 @@ int em_route(wifi_event_route_t *route)
     return RETURN_OK;
 }
 
-static int em_sta_stats_publish(wifi_app_t *app, sta_data_t *sta_data)
+static void prepare_sta_lins_metrics_data(webconfig_subdoc_data_t *data, client_assoc_data_t *stats)
+{
+    int sta_count = 0;
+    int sta_it = 0;
+    for (int i = 0; i < MAX_NUM_VAP_PER_RADIO; i++)
+    {
+        sta_count += stats[i].hit_count;
+    }
+
+    data->u.decoded.em_sta_link_metrics_rsp.sta_count = sta_count;
+    data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics = (em_per_sta_metrics_t *)malloc(sta_count * sizeof(em_per_sta_metrics_t));
+    em_per_sta_metrics_t * param = data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics;
+    
+    for (int i = 0; i < MAX_NUM_VAP_PER_RADIO; i++)
+    {
+        for (int j = 0; j < stats[i].stat_array_size; j++)
+        {
+            if (stats[i].threshold_hit[j] == true)
+            {
+                memcpy(param[sta_it].assoc_sta_link_metrics.sta_mac, stats[i].assoc_stats[j].sta_mac, sizeof(mac_address_t));
+                param[sta_it].assoc_sta_link_metrics.num_bssid = 1; //must be changed for STA multiple associations
+                param[sta_it].assoc_sta_link_metrics.assoc_sta_link_metrics_data[0].bssid;
+                
+            }
+        }
+    }
+}
+
+static int em_sta_stats_publish(wifi_app_t *app, client_assoc_data_t *stats)
 {
     webconfig_subdoc_data_t *data;
     raw_data_t rdata;
@@ -102,14 +131,15 @@ static int em_sta_stats_publish(wifi_app_t *app, sta_data_t *sta_data)
         return -1;
     }
 
+
     //need to specify how to pack all the metrics, send one by one or into array?
     memset(data, 0, sizeof(webconfig_subdoc_data_t));
     memset(&rdata, 0, sizeof(raw_data_t));
 
-    if (webconfig_encode(&ctrl->webconfig, data, webconfig_subdoc_type_em_sta_stats) != webconfig_error_none) {
+    if (webconfig_encode(&ctrl->webconfig, data, webconfig_subdoc_type_em_sta_link_metrics) != webconfig_error_none) {
         wifi_util_error_print(WIFI_CTRL, "%s:%d Error in encoding assocdev stats\n", __func__,
             __LINE__);
-        free(data->u.decoded.sta_stats);
+        free(data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics);
         free(data);
         return RETURN_ERR;
     }
@@ -154,6 +184,7 @@ static int handle_ready_client_stats(wifi_app_t *app, client_assoc_data_t *stats
             tmp_vap_array_index = convert_vap_index_to_vap_array_index(&wifi_mgr->hal_cap.wifi_prop, tmp_vap_index);
             if (tmp_vap_array_index >= 0 && tmp_vap_array_index < (int)stats_num) {
                 size_t stat_array_size = stats[tmp_vap_array_index].stat_array_size;
+                stats[tmp_vap_array_index].hit_count = 0;
                 for (size_t i = 0; i < stat_array_size; i++) {
                     sta_data_t *sta_data = &stats[tmp_vap_array_index].assoc_stats[i];
                     if (!sta_data) {
@@ -166,11 +197,12 @@ static int handle_ready_client_stats(wifi_app_t *app, client_assoc_data_t *stats
                     if (RCPI < RCPI_threshold)
                     {
                         stats[tmp_vap_array_index].threshold_hit[i] = true;
-                        em_sta_stats_publish(app, sta_data);
+                        stats[tmp_vap_array_index].hit_count++;
                     }
                     else if (stats[tmp_vap_array_index].threshold_hit[i] == true && RCPI < (RCPI_threshold + RCPI_hysteresis))
                     {
-                        em_sta_stats_publish(app, sta_data);
+                        stats[tmp_vap_array_index].threshold_hit[i] = true;
+                        stats[tmp_vap_array_index].hit_count++;
                     }
                     else
                     {
@@ -182,7 +214,7 @@ static int handle_ready_client_stats(wifi_app_t *app, client_assoc_data_t *stats
         tmp_vap_index++;
         vap_mask >>= 1;
     }
-
+    em_sta_stats_publish(app, stats);
     return RETURN_OK;
 }
 

@@ -154,28 +154,14 @@ webconfig_error_t decode_em_sta_link_subdoc(webconfig_t *config, webconfig_subdo
         return webconfig_error_decode;
     }
 
-    memset(params->em_sta_link_metrics_rsp.per_sta_metrics, 0, sizeof(em_per_sta_metrics_t));
-
-    em_sta_link = cJSON_GetObjectItem(json, "WifiEMConfig");
-    if (em_sta_link == NULL) {
-        wifi_util_error_print(WIFI_EM, "%s:%d: EMConfig object not present\n", __func__, __LINE__);
+    if (decode_em_sta_link_object(json, &params->em_config) != webconfig_error_none) {
+        wifi_util_error_print(WIFI_EM, "%s:%d: STA Metrics object Validation Failed\n", __func__, __LINE__);
         cJSON_Delete(json);
         wifi_util_error_print(WIFI_EM, "%s\n", (char *)data->u.encoded.raw);
-        return webconfig_error_invalid_subdoc;
+        return webconfig_error_decode;
     }
-
-    if (cJSON_IsArray(em_sta_link)) {
-        int arr_sz = cJSON_GetArraySize(em_sta_link);
-            for (int i = 0; i < arr_sz; i++) {
-                const cJSON *policy_cfg = cJSON_GetArrayItem(em_sta_link, i);
-                if (decode_em_sta_link_object(policy_cfg, &params->em_config) != webconfig_error_none) {
-                    wifi_util_error_print(WIFI_EM, "%s:%d: EM config object Validation Failed\n", __func__, __LINE__);
-                    cJSON_Delete(json);
-                    wifi_util_error_print(WIFI_EM, "%s\n", (char *)data->u.encoded.raw);
-                    return webconfig_error_decode;
-                }
-            }
-    }
+            
+    
 
     cJSON_Delete(json);
     wifi_util_info_print(WIFI_EM, "%s:%d: decode success\n", __func__, __LINE__);

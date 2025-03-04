@@ -5369,20 +5369,36 @@ decode_em_sta_link_metrics_object(const cJSON *em_sta_link, em_assoc_sta_link_me
             wifi_util_error_print(WIFI_EM,"%s:%d: cjson object is NULL\n", __func__, __LINE__);
             return webconfig_error_decode;
         }else {
-            decode_param_allow_optional_string(sta_link_metrics_obj, "BSSID", param);
-            str_to_mac_bytes(param->valuestring, sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.bssid);
+            decode_param_allow_optional_string(sta_link_metrics_obj, "STA MAC", param);
+            str_to_mac_bytes(param->valuestring, sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.sta_mac);
 
-            decode_param_integer(sta_link_metrics_obj, "Time Delta", param);
-            sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.time_delta = param->valuedouble;
+            decode_param_integer(sta_link_metrics_obj, "Number of BSSIDs", param);
+            sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.num_bssid = param->valuedouble;
 
-            decode_param_integer(sta_link_metrics_obj, "Estimated Mac Rate Down", param);
-            sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.est_mac_rate_down = param->valuedouble;
+            per_bssid_metrics = cJSON_GetObjectItem(sta_link_metrics_obj, "Per BSSID Metrics");
+            if (per_bssid_metrics == NULL) {
+                wifi_util_error_print(WIFI_EM,"%s:%d: cjson object is NULL\n", __func__, __LINE__);
+                return webconfig_error_decode;
+            }
+            for (int j = 0; j < sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metricsum_bssid; j++)
+            {
+                bssid_metrics_arr_item = cJSON_GetArrayItem(per_bssid_metrics, j);
 
-            decode_param_integer(sta_link_metrics_obj, "Estimated Mac Rate Up", param);
-            sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.est_mac_rate_down = param->valuedouble;
-
-            decode_param_integer(sta_link_metrics_obj, "RCPI", param);
-            sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.rcpi = param->valuedouble;
+                decode_param_allow_optional_string(bssid_metrics_arr_item, "BSSID", param);
+                str_to_mac_bytes(param->valuestring, sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.bssid);
+    
+                decode_param_integer(bssid_metrics_arr_item, "Time Delta", param);
+                sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.assoc_sta_link_metrics_data.time_delta = param->valuedouble;
+    
+                decode_param_integer(bssid_metrics_arr_item, "Estimated Mac Rate Down", param);
+                sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.assoc_sta_link_metrics_data.est_mac_rate_down = param->valuedouble;
+    
+                decode_param_integer(bssid_metrics_arr_item, "Estimated Mac Rate Up", param);
+                sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.assoc_sta_link_metrics_data.est_mac_rate_down = param->valuedouble;
+    
+                decode_param_integer(bssid_metrics_arr_item, "RCPI", param);
+                sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.assoc_sta_link_metrics_data.rcpi = param->valuedouble;
+            }
         }
 
         // Error Code
@@ -5417,7 +5433,7 @@ decode_em_sta_link_metrics_object(const cJSON *em_sta_link, em_assoc_sta_link_me
             }
             for (int j = 0; j < sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.num_bssid; j++)
             {
-                bssid_metrics_arr_item = cJSON_GetArraySize(per_bssid_metrics, j);
+                bssid_metrics_arr_item = cJSON_GetArrayItem(per_bssid_metrics, j);
 
                 decode_param_allow_optional_string(bssid_metrics_arr_item, "BSSID", param);
                 str_to_mac_bytes(param->valuestring, sta_link_metrics->per_sta_metrics[i].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[j].bssid);

@@ -182,6 +182,8 @@ typedef void *wifi_analytics_data_t;
 #define BSS_MAX_NUM_STATIONS     100     /**< Max supported stations by RDK-B firmware which would varies based on platform */
 #define BSS_MAX_NUM_STA_HOTSPOT_CBRV2    15      /**< Max supported stations for hotspot vaps in CBR2 platform */
 
+#define STA_MAX_BSS_ASSOCIATIONS  1
+
 typedef unsigned char   mac_addr_t[MAC_ADDR_LEN];
 typedef signed short    rssi_t;
 typedef char            sta_key_t[STA_KEY_LEN];
@@ -1143,6 +1145,11 @@ typedef struct {
     int est_mac_rate_down;
     int est_mac_rate_up;
     int rcpi;
+} em_assoc_sta_link_metrics_data_t;
+typedef struct {
+    mac_addr_t sta_mac;
+    int num_bssid;
+    em_assoc_sta_link_metrics_data_t assoc_sta_link_metrics_data[STA_MAX_BSS_ASSOCIATIONS];
 } em_assoc_sta_link_metrics_t;
 
 typedef struct {
@@ -1161,7 +1168,7 @@ typedef struct {
 typedef struct {
     mac_addr_t sta_mac;
     int num_bssid;
-    em_assoc_sta_ext_link_metrics_data_t *assoc_sta_ext_link_metrics_data;
+    em_assoc_sta_ext_link_metrics_data_t assoc_sta_ext_link_metrics_data[STA_MAX_BSS_ASSOCIATIONS];
 } em_assoc_sta_ext_link_metrics_t;
 
 typedef struct {

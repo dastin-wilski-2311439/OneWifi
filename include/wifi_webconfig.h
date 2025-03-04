@@ -197,12 +197,6 @@ typedef struct {
 } collect_subscribed_stats_t;
 
 typedef struct {
-    int sta_count;
-    em_sta_stats_t *sta_stats;
-    em_sta_link_t * sta_link;
-} em_sta_data_t;
-
-typedef struct {
     wifi_global_config_t    config;
     wifi_hal_capability_t   hal_cap;
     rdk_wifi_radio_t    radios[MAX_NUM_RADIOS];
