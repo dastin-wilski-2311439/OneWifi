@@ -88,7 +88,7 @@ int em_route(wifi_event_route_t *route)
     return RETURN_OK;
 }
 
-static void prepare_sta_lins_metrics_data(webconfig_subdoc_data_t *data, client_assoc_data_t *stats)
+static int prepare_sta_lins_metrics_data(webconfig_subdoc_data_t *data, client_assoc_data_t *stats)
 {
     int sta_count = 0;
     int sta_it = 0;
@@ -99,6 +99,13 @@ static void prepare_sta_lins_metrics_data(webconfig_subdoc_data_t *data, client_
 
     data->u.decoded.em_sta_link_metrics_rsp.sta_count = sta_count;
     data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics = (em_per_sta_metrics_t *)malloc(sta_count * sizeof(em_per_sta_metrics_t));
+    if (data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics == NULL) {
+        wifi_util_error_print(WIFI_CTRL, "%s:%d Error in allocating table for stats\n", __func__,
+            __LINE__);
+        free(data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics);
+        free(data);
+        return RETURN_ERR;
+    }
     em_per_sta_metrics_t * param = data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics;
     
     for (int i = 0; i < MAX_NUM_VAP_PER_RADIO; i++)
@@ -107,13 +114,30 @@ static void prepare_sta_lins_metrics_data(webconfig_subdoc_data_t *data, client_
         {
             if (stats[i].threshold_hit[j] == true)
             {
+                // Associated STA Link Metrics
                 memcpy(param[sta_it].assoc_sta_link_metrics.sta_mac, stats[i].assoc_stats[j].sta_mac, sizeof(mac_address_t));
                 param[sta_it].assoc_sta_link_metrics.num_bssid = 1; //must be changed for STA multiple associations
-                param[sta_it].assoc_sta_link_metrics.assoc_sta_link_metrics_data[0].bssid;
-                
+
+                memcpy(param[sta_it].assoc_sta_link_metrics.assoc_sta_link_metrics_data[0].bssid, stats[i].assoc_stats[j].link_mac);
+                param[sta_it].assoc_sta_link_metrics.assoc_sta_link_metrics_data[0].time_delta = 0; //How to calculate time Delta (The time delta in ms between the time at which the earliest measurement that contributed to the data rate estimates were made, and the time at which this report was sent.)
+                param[sta_it].assoc_sta_link_metrics.assoc_sta_link_metrics_data[0].est_mac_rate_down = stats[i].assoc_stats[j].dev_stats.cli_MaxDownlinkRate; // I'm not sure if cli_MaxXXXX is the same as "Estimated MAC Data Rate in downlink"
+                param[sta_it].assoc_sta_link_metrics.assoc_sta_link_metrics_data[0].est_mac_rate_up = stats[i].assoc_stats[j].dev_stats.cli_MaxUplinkRate;
+                param[sta_it].assoc_sta_link_metrics.assoc_sta_link_metrics_data[0].rcpi = em_rssi_to_rcpi(stats[i].assoc_stats[j].dev_stats.cli_RSSI);
+
+
+                // Associated STA Extended Link Metrics 
+                memcpy(param[sta_it].assoc_sta_ext_link_metrics.sta_mac, stats[i].assoc_stats[j].sta_mac, sizeof(mac_address_t));
+                param[sta_it].assoc_sta_ext_link_metrics.num_bssid = 1; //must be changed for STA multiple associations
+                memcpy(param[sta_it].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[0].bssid, stats[i].assoc_stats[j].link_mac);
+                param[sta_it].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[0].last_data_downlink_rate = stats[i].assoc_stats[j].dev_stats.cli_LastDataDownlinkRate;
+                param[sta_it].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[0].last_data_uplink_rate = stats[i].assoc_stats[j].dev_stats.cli_LastDataUplinkRate;
+                param[sta_it].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[0].utilization_receive = 0; //do we have that data?
+                param[sta_it].assoc_sta_ext_link_metrics.assoc_sta_ext_link_metrics_data[0].utilization_transmit = 0; //do we have that data?
+                sta_it++;
             }
         }
     }
+    return RETURN_OK;
 }
 
 static int em_sta_stats_publish(wifi_app_t *app, client_assoc_data_t *stats)
@@ -136,6 +160,8 @@ static int em_sta_stats_publish(wifi_app_t *app, client_assoc_data_t *stats)
     memset(data, 0, sizeof(webconfig_subdoc_data_t));
     memset(&rdata, 0, sizeof(raw_data_t));
 
+    prepare_sta_lins_metrics_data(data, stats);
+
     if (webconfig_encode(&ctrl->webconfig, data, webconfig_subdoc_type_em_sta_link_metrics) != webconfig_error_none) {
         wifi_util_error_print(WIFI_CTRL, "%s:%d Error in encoding assocdev stats\n", __func__,
             __LINE__);
@@ -152,11 +178,11 @@ static int em_sta_stats_publish(wifi_app_t *app, client_assoc_data_t *stats)
     if (rc != bus_error_success) {
         wifi_util_error_print(WIFI_CTRL, "%s:%d: bus: bus_event_publish_fn Event failed %d\n",
             __func__, __LINE__, rc);
-        free(data->u.decoded.external_protos);
+        free(data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics);
         free(data);
         return RETURN_ERR;
     }
-    free(data->u.decoded.external_protos);
+    free(data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics);
     free(data);
 
 }
