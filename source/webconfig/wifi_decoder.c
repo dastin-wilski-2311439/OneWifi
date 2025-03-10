@@ -5351,13 +5351,23 @@ decode_em_sta_link_metrics_object(const cJSON *em_sta_link, em_assoc_sta_link_me
     const cJSON *param;
     const cJSON *rsp_obj, *sta_link_metrics_obj, *error_code_obj, *sta_ext_link_metrics_obj, *array_item, *per_bssid_metrics, *bssid_metrics_arr_item;
 
+
+    decode_param_integer(em_sta_link, "Vap Index", param);
+    sta_link_metrics->vap_index = param->valuedouble;
+
     rsp_obj = cJSON_GetObjectItem(em_sta_link, "Associated STA Link Metrics Response");
     if (rsp_obj == NULL) {
         wifi_util_error_print(WIFI_EM,"%s:%d: cjson object is NULL\n", __func__, __LINE__);
         return webconfig_error_decode;
     }
-
     sta_link_metrics->sta_count = cJSON_GetArraySize(rsp_obj);
+
+    sta_link_metrics->per_sta_metrics = (em_per_sta_metrics_t *)malloc(sta_link_metrics->sta_count * sizeof(em_per_sta_metrics_t));
+    if (sta_link_metrics->per_sta_metrics == NULL) {
+        wifi_util_error_print(WIFI_EM, "%s:%d Error in allocating table for decode stats\n", __func__,
+            __LINE__);
+        return webconfig_error_decode;
+    }
 
     for (int i = 0; i < sta_link_metrics->sta_count; i++)
     {

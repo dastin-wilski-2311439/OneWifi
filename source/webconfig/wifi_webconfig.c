@@ -719,29 +719,18 @@ webconfig_error_t webconfig_init(webconfig_t *config)
     config->subdocs[webconfig_subdoc_type_em_config].translate_to_subdoc = translate_to_em_config_subdoc;
     config->subdocs[webconfig_subdoc_type_em_config].translate_from_subdoc = translate_from_em_config_subdoc;
 
-    config->subdocs[webconfig_subdoc_type_em_sta_link].type = webconfig_subdoc_type_em_sta_link;
-    strcpy(config->subdocs[webconfig_subdoc_type_em_sta_link].name, "Easymesh STA link");
-    config->subdocs[webconfig_subdoc_type_em_sta_link].major = 1;
-    config->subdocs[webconfig_subdoc_type_em_sta_link].minor = 1;
-    config->subdocs[webconfig_subdoc_type_em_sta_link].init_subdoc = init_em_sta_link_subdoc;
-    config->subdocs[webconfig_subdoc_type_em_sta_link].init_subdoc(&config->subdocs[webconfig_subdoc_type_em_sta_link]);
-    config->subdocs[webconfig_subdoc_type_em_sta_link].access_check_subdoc = access_check_em_sta_link_subdoc;
-    config->subdocs[webconfig_subdoc_type_em_sta_link].encode_subdoc = encode_em_sta_link_subdoc;
-    config->subdocs[webconfig_subdoc_type_em_sta_link].decode_subdoc = decode_em_sta_link_subdoc;
-    config->subdocs[webconfig_subdoc_type_em_sta_link].translate_to_subdoc = translate_to_em_sta_link_subdoc;
-    config->subdocs[webconfig_subdoc_type_em_sta_link].translate_from_subdoc = translate_from_em_sta_link_subdoc;
+    config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].type = webconfig_subdoc_type_em_sta_link_metrics;
+    strcpy(config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].name, "Easymesh STA link metrics");
+    config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].major = 1;
+    config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].minor = 1;
+    config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].init_subdoc = init_em_sta_link_subdoc;
+    config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].init_subdoc(&config->subdocs[webconfig_subdoc_type_em_sta_link_metrics]);
+    config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].access_check_subdoc = access_check_em_sta_link_subdoc;
+    config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].encode_subdoc = encode_em_sta_link_subdoc;
+    config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].decode_subdoc = decode_em_sta_link_subdoc;
+    config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].translate_to_subdoc = translate_to_em_sta_link_subdoc;
+    config->subdocs[webconfig_subdoc_type_em_sta_link_metrics].translate_from_subdoc = translate_from_em_sta_link_subdoc;
 
-    config->subdocs[webconfig_subdoc_type_em_sta_stats].type = webconfig_subdoc_type_em_sta_stats;
-    strcpy(config->subdocs[webconfig_subdoc_type_em_sta_stats].name, "Easymesh STA stats");
-    config->subdocs[webconfig_subdoc_type_em_sta_stats].major = 1;
-    config->subdocs[webconfig_subdoc_type_em_sta_stats].minor = 1;
-    config->subdocs[webconfig_subdoc_type_em_sta_stats].init_subdoc = init_em_sta_stats_subdoc;
-    config->subdocs[webconfig_subdoc_type_em_sta_stats].init_subdoc(&config->subdocs[webconfig_subdoc_type_em_sta_stats]);
-    config->subdocs[webconfig_subdoc_type_em_sta_stats].access_check_subdoc = access_check_em_sta_stats_subdoc;
-    config->subdocs[webconfig_subdoc_type_em_sta_stats].encode_subdoc = encode_em_sta_stats_subdoc;
-    config->subdocs[webconfig_subdoc_type_em_sta_stats].decode_subdoc = decode_em_sta_stats_subdoc;
-    config->subdocs[webconfig_subdoc_type_em_sta_stats].translate_to_subdoc = translate_to_em_sta_stats_subdoc;
-    config->subdocs[webconfig_subdoc_type_em_sta_stats].translate_from_subdoc = translate_from_em_sta_stats_subdoc;
 #endif //EM_APP Support
 
     config->proto_desc.translate_to = translate_to_proto;

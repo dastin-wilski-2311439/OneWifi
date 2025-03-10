@@ -11,10 +11,10 @@
 #define APP_TO_DCA 2
 
 typedef struct {
-    sta_data_t  assoc_stats[BSS_MAX_NUM_STATIONS];
-    bool        threshold_hit[BSS_MAX_NUM_STATIONS];
-    int         hit_count;
-    size_t      stat_array_size;
+    sta_data_t      assoc_stats[BSS_MAX_NUM_STATIONS];
+    bool            threshold_hit[BSS_MAX_NUM_STATIONS];
+    unsigned int    hit_count;
+    size_t          stat_array_size;
 } client_assoc_data_t;
 
 typedef struct {
@@ -95,25 +95,29 @@ static int prepare_sta_lins_metrics_data(webconfig_subdoc_data_t *data, client_a
     for (int i = 0; i < MAX_NUM_VAP_PER_RADIO; i++)
     {
         sta_count += stats[i].hit_count;
+        stats[i].hit_count = 0;
     }
 
     data->u.decoded.em_sta_link_metrics_rsp.sta_count = sta_count;
     data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics = (em_per_sta_metrics_t *)malloc(sta_count * sizeof(em_per_sta_metrics_t));
     if (data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics == NULL) {
-        wifi_util_error_print(WIFI_CTRL, "%s:%d Error in allocating table for stats\n", __func__,
+        wifi_util_error_print(WIFI_CTRL, "%s:%d Error in allocating table for encode stats\n", __func__,
             __LINE__);
         free(data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics);
         free(data);
         return RETURN_ERR;
     }
+
     em_per_sta_metrics_t * param = data->u.decoded.em_sta_link_metrics_rsp.per_sta_metrics;
-    
+
     for (int i = 0; i < MAX_NUM_VAP_PER_RADIO; i++)
     {
         for (int j = 0; j < stats[i].stat_array_size; j++)
         {
             if (stats[i].threshold_hit[j] == true)
             {
+                stats[i].threshold_hit[j] = false;
+                
                 // Associated STA Link Metrics
                 memcpy(param[sta_it].assoc_sta_link_metrics.sta_mac, stats[i].assoc_stats[j].sta_mac, sizeof(mac_address_t));
                 param[sta_it].assoc_sta_link_metrics.num_bssid = 1; //must be changed for STA multiple associations
@@ -140,7 +144,7 @@ static int prepare_sta_lins_metrics_data(webconfig_subdoc_data_t *data, client_a
     return RETURN_OK;
 }
 
-static int em_sta_stats_publish(wifi_app_t *app, client_assoc_data_t *stats)
+static int em_sta_stats_publish(wifi_app_t *app, client_assoc_data_t *stats, unsigned int vap_index)
 {
     webconfig_subdoc_data_t *data;
     raw_data_t rdata;
@@ -159,7 +163,7 @@ static int em_sta_stats_publish(wifi_app_t *app, client_assoc_data_t *stats)
     //need to specify how to pack all the metrics, send one by one or into array?
     memset(data, 0, sizeof(webconfig_subdoc_data_t));
     memset(&rdata, 0, sizeof(raw_data_t));
-
+    data->u.decoded.em_sta_link_metrics_rsp.vap_index = vap_index;
     prepare_sta_lins_metrics_data(data, stats);
 
     if (webconfig_encode(&ctrl->webconfig, data, webconfig_subdoc_type_em_sta_link_metrics) != webconfig_error_none) {
@@ -187,7 +191,7 @@ static int em_sta_stats_publish(wifi_app_t *app, client_assoc_data_t *stats)
 
 }
 
-static int handle_ready_client_stats(wifi_app_t *app, client_assoc_data_t *stats, size_t stats_num, unsigned int vap_mask, unsigned int radio_index)
+static int handle_ready_client_stats(wifi_app_t *app, client_assoc_data_t *stats, size_t stats_num, unsigned int vap_mask, unsigned int radio_index, unsigned int vap_index)
 {
     unsigned int tmp_vap_index = 0;
     int tmp_vap_array_index = 0;
@@ -240,7 +244,7 @@ static int handle_ready_client_stats(wifi_app_t *app, client_assoc_data_t *stats
         tmp_vap_index++;
         vap_mask >>= 1;
     }
-    em_sta_stats_publish(app, stats);
+    em_sta_stats_publish(app, stats, vap_index);
     return RETURN_OK;
 }
 
@@ -277,7 +281,7 @@ int assoc_client_response(wifi_app_t *app, wifi_provider_response_t *provider_re
         handle_ready_client_stats(app, client_assoc_stats[radio_index].client_assoc_data,
                                   MAX_NUM_VAP_PER_RADIO,
                                   client_assoc_stats[radio_index].assoc_stats_vap_presence_mask,
-                                  radio_index);
+                                  radio_index, vap_index);
         client_assoc_stats[radio_index].assoc_stats_vap_presence_mask = 0;
     }
 

@@ -1178,10 +1178,11 @@ typedef struct {
 } em_per_sta_metrics_t;
 
 typedef struct {
-    int sta_count;
+    int vap_index;
+    unsigned int sta_count;
     em_per_sta_metrics_t *per_sta_metrics;
-}em_assoc_sta_link_metrics_rsp_t;
-    
+} em_assoc_sta_link_metrics_rsp_t;
+
 typedef struct {
     unsigned char dialog_token;
     size_t size;

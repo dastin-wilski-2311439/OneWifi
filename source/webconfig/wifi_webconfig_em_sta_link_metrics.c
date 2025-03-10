@@ -31,7 +31,7 @@
 webconfig_subdoc_object_t   em_sta_link_metrics_objects[3] = {
     { webconfig_subdoc_object_type_version, "Version" },
     { webconfig_subdoc_object_type_subdoc, "SubDocName" },
-    { webconfig_subdoc_object_type_em_sta_link, "WifiStaLinkMetrics" },
+    { webconfig_subdoc_object_type_em_sta_link_metrics, "WifiStaLinkMetrics" },
 };
 
 webconfig_error_t init_em_sta_link_subdoc(webconfig_subdoc_t *doc)
@@ -68,20 +68,6 @@ webconfig_error_t translate_from_em_sta_link_subdoc(webconfig_t *config, webconf
 
 webconfig_error_t translate_to_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data)
 {
-    if (((data->descriptor & webconfig_data_descriptor_translate_to_ovsdb) == webconfig_data_descriptor_translate_to_ovsdb) ||  ((data->descriptor & webconfig_data_descriptor_translate_to_easymesh) == webconfig_data_descriptor_translate_to_easymesh)) {
-        if (config->proto_desc.translate_from(webconfig_subdoc_type_em_sta_link_metrics, data) != webconfig_error_none) {
-            if ((data->descriptor & webconfig_data_descriptor_translate_to_ovsdb) == webconfig_data_descriptor_translate_to_ovsdb) {
-                return webconfig_error_translate_to_ovsdb;
-            } else {
-                return webconfig_error_translate_to_easymesh;
-            }
-        }
-    } else if ((data->descriptor & webconfig_data_descriptor_translate_to_tr181) == webconfig_data_descriptor_translate_to_tr181) {
-
-    } else {
-        // no translation required
-    }
-    //no translation required
     return webconfig_error_none;
 }
 
@@ -112,6 +98,7 @@ webconfig_error_t encode_em_sta_link_subdoc(webconfig_t *config, webconfig_subdo
 
     cJSON_AddStringToObject(json, "Version", "1.0");
     cJSON_AddStringToObject(json, "SubDocName", "EM_STA_link_metrics");
+    cJSON_AddNumberToObject(json, "Vap Index", params->em_sta_link_metrics_rsp.vap_index);
 
     obj_emstalink = cJSON_CreateArray();
     cJSON_AddItemToObject(json, "Associated STA Link Metrics Response", obj_emstalink);
@@ -154,9 +141,11 @@ webconfig_error_t decode_em_sta_link_subdoc(webconfig_t *config, webconfig_subdo
         return webconfig_error_decode;
     }
 
-    if (decode_em_sta_link_object(json, &params->em_config) != webconfig_error_none) {
+    if (decode_em_sta_link_object(json, &params->em_sta_link_metrics_rsp) != webconfig_error_none) {
         wifi_util_error_print(WIFI_EM, "%s:%d: STA Metrics object Validation Failed\n", __func__, __LINE__);
         cJSON_Delete(json);
+        if(params->em_sta_link_metrics_rsp.per_sta_metrics != NULL)
+            free(params->em_sta_link_metrics_rsp.per_sta_metrics);
         wifi_util_error_print(WIFI_EM, "%s\n", (char *)data->u.encoded.raw);
         return webconfig_error_decode;
     }
