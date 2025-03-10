@@ -118,6 +118,7 @@ typedef enum {
     webconfig_subdoc_type_csi,
     webconfig_subdoc_type_stats_config,
     webconfig_subdoc_type_em_config,
+    webconfig_subdoc_type_em_sta_link_metrics,
     webconfig_subdoc_type_steering_config,
     webconfig_subdoc_type_steering_clients,
     webconfig_subdoc_type_vif_neighbors,
@@ -159,6 +160,7 @@ typedef enum {
     webconfig_subdoc_object_type_levl,
     webconfig_subdoc_object_type_cac,
     webconfig_subdoc_object_type_em_config,
+    webconfig_subdoc_object_type_em_sta_link_metrics,
     webconfig_subdoc_object_type_sta_manager,
     webconfig_subdoc_object_max
 } webconfig_subdoc_object_type_t;
@@ -212,6 +214,7 @@ typedef struct {
     sta_beacon_report_reponse_t stamgr;
     collect_subscribed_stats_t collect_stats;
     em_config_t em_config;
+    em_assoc_sta_link_metrics_rsp_t em_sta_link_metrics_rsp;
 } webconfig_subdoc_decoded_data_t;
 
 typedef char  * webconfig_subdoc_encoded_raw_t;
@@ -622,6 +625,14 @@ webconfig_error_t       decode_em_config_subdoc(webconfig_t *config, webconfig_s
 webconfig_error_t       encode_em_config_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data);
 webconfig_error_t       translate_to_em_config_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data);
 webconfig_error_t       translate_from_em_config_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data);
+
+// EM STA link metrics
+webconfig_error_t       init_em_sta_link_subdoc(webconfig_subdoc_t *doc);
+webconfig_error_t       access_check_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data);
+webconfig_error_t       decode_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data);
+webconfig_error_t       encode_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data);
+webconfig_error_t       translate_to_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data);
+webconfig_error_t       translate_from_em_sta_link_subdoc(webconfig_t *config, webconfig_subdoc_data_t *data);
 
 #ifdef __cplusplus
 }
